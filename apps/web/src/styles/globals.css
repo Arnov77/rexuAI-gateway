@@ -1,0 +1,163 @@
+/* Hallmark · v2.0.0 · theme: custom metered utility · genre: modern-minimal · job: try the playground · signature: live token meter */
+/* Critique: one signature element (the meter), no gradients, no card kit, no invented proof. */
+
+@import "tailwindcss";
+
+@custom-variant dark {
+  &:where(.dark, .dark *) {
+    @slot;
+  }
+  @media (prefers-color-scheme: dark) {
+    &:where(:root:not(.light), :root:not(.light) *) {
+      @slot;
+    }
+  }
+}
+
+@theme {
+  --color-paper: #f6f4ee;
+  --color-ink: #14171a;
+  --color-oxide: #b4482e;
+  --color-petrol: #14524e;
+  --color-line: #c8c3b6;
+  --color-muted: #6b675e;
+  --color-chalk: #ffffff;
+  --font-sans: "Archivo", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  html:not(.light) {
+    --color-paper: #0f0f0d;
+    --color-ink: #f0ede6;
+    --color-oxide: #c8573a;
+    --color-petrol: #1a6b65;
+    --color-line: #333330;
+    --color-muted: #8a8780;
+    --color-chalk: #ffffff;
+  }
+}
+
+html.dark {
+  --color-paper: #0f0f0d;
+  --color-ink: #f0ede6;
+  --color-oxide: #c8573a;
+  --color-petrol: #1a6b65;
+  --color-line: #333330;
+  --color-muted: #8a8780;
+  --color-chalk: #ffffff;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  html,
+  body {
+    overflow-x: clip;
+    background: var(--color-paper);
+    color: var(--color-ink);
+  }
+
+  body {
+    font-family: var(--font-sans);
+    font-size: 16px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection {
+    background: var(--color-oxide);
+    color: var(--color-chalk);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-oxide);
+    outline-offset: 2px;
+  }
+
+  button,
+  input,
+  textarea,
+  select {
+    font: inherit;
+  }
+
+  button {
+    cursor: pointer;
+  }
+
+  button:disabled {
+    cursor: not-allowed;
+  }
+
+  input,
+  textarea,
+  select {
+    color: var(--color-ink);
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--color-muted);
+    opacity: 1;
+  }
+}
+
+@layer utilities {
+  .tnum {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .reveal {
+    animation: rise 420ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+
+  .typing-dot {
+    animation: typing-dot 1.2s ease-in-out infinite;
+  }
+
+  .rule {
+    border-color: var(--color-line);
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes typing-dot {
+  0%,
+  60%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.4;
+  }
+  30% {
+    transform: translateY(-4px);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  html {
+    scroll-behavior: auto !important;
+  }
+}

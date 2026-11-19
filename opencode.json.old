@@ -1,0 +1,26 @@
+{
+  "$schema": "https://opencode.ai",
+  "provider": {
+    "zytro": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "ZytroAPI Unlimited",
+      "options": {
+        "baseURL": "https://etherealmarket.my.id/v1",
+        "apiKey": "{env:BANKAI_API_KEY}"
+      },
+      "models": {
+        "deepseek-v4.1-flash": { "name": "DeepSeek V4.1 Flash" },
+        "gpt-5.6-sol": { "name": "GPT 5.6 Sol" }
+      }
+    }
+  },
+  "agent": {
+    "plan": {
+      "model": "zytro/deepseek-v4.1-flash"
+    },
+    "build": {
+      "model": "zytro/deepseek-v4.1-flash"
+    }
+  },
+  "model": "zytro/deepseek-v4.1-flash"
+}

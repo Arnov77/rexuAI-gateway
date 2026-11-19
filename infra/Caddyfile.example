@@ -1,0 +1,32 @@
+rexu.ai {
+    # Serve static web files
+    root * /var/www/rexu/web
+    file_server
+
+    # Proxy API ke backend
+    handle /api/* {
+        reverse_proxy localhost:3001
+    }
+
+    # Proxy v1 (OpenAI-compatible endpoint) ke backend
+    handle /v1/* {
+        reverse_proxy localhost:3001 {
+            # Penting untuk SSE/streaming
+            flush_interval -1
+        }
+    }
+
+    # Fallback ke index.html untuk SPA routing
+    handle {
+        try_files {path} /index.html
+        file_server
+    }
+
+    # Compression
+    encode gzip zstd
+}
+
+# Redirect www ke non-www (opsional)
+www.rexu.ai {
+    redir https://rexu.ai{uri} permanent
+}

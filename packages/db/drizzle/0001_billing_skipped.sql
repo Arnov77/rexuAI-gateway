@@ -1,0 +1,1 @@
+ALTER TYPE "public"."billing_status" ADD VALUE 'skipped' BEFORE 'finalized';

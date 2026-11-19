@@ -1,0 +1,54 @@
+{
+  "$schema": "https://opencode.ai",
+  "provider": {
+    "zytro": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "ZytroAPI Unlimited",
+      "options": {
+        "baseURL": "https://unli.zytroapi.my.id/v1",
+        "apiKey": "{env:ZYTRO_API_KEY}"
+      },
+      "models": {
+        "deepseek-v4.1-flash": { "name": "DeepSeek V4.1 Flash" },
+        "gpt-5.6-luna": { "name": "GPT 5.6 Luna" },
+        "Opus-5.5": { "name": "Opus 5.5" }
+      }
+    },
+    "bankai": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "BankAI",
+      "options": {
+        "baseURL": "https://bankai.web.id/api/v1",
+        "apiKey": "{env:BANKAI_API_KEY}"
+      },
+      "models": {
+        "deepseek-v4.1-flash": { "name": "DeepSeek V4.1 Flash" },
+        "gpt-5.6-luna": { "name": "GPT 5.6 Luna" },
+        "Opus-5.5": { "name": "Opus 5.5" }
+      }
+    },
+    "tokenizer": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "Tokenizer",
+      "options": {
+        "baseURL": "https://tokenizer.id/v1",
+        "apiKey": "{env:TKNZ_API_KEY}"
+      },
+      "models": {
+        "deepseek-v4.1-flash": { "name": "DeepSeek V4.1 Flash" },
+        "deepseek-v4.1-flash-1017": { "name": "DeepSeek V4.1 Flash 1017" },
+        "gpt-5.6-luna": { "name": "GPT 5.6 Luna" },
+        "Opus-5.5": { "name": "Opus 5.5" }
+      }
+    }
+  },
+  "agent": {
+    "plan": {
+      "model": "tknz/deepseek-v4.1-flash"
+    },
+    "build": {
+      "model": "tknz/got-5.6-luna"
+    }
+  },
+  "model": "tknz/deepseek-v4.1-flash"
+}

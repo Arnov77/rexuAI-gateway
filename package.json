@@ -1,0 +1,36 @@
+{
+  "name": "rexu",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "db:generate": "npm run db:generate -w @rexu/db",
+    "db:migrate": "npm run db:migrate -w @rexu/db",
+    "db:seed": "npm run db:seed -w @rexu/db",
+    "seed:admin": "tsx scripts/seed-admin.ts",
+    "seed:test-user": "npx tsx scripts/seed-test-user.ts",
+    "verify:bankai": "tsx scripts/verify-bankai.ts",
+    "verify:billing": "npx tsx scripts/verify-shadow-billing.ts",
+    "calibrate:min-block": "npx tsx scripts/calibrate-min-block.ts",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "lint": "biome check .",
+    "format": "biome format --write .",
+    "check:billing": "tsx scripts/check-billing.ts",
+    "test:billing": "tsx scripts/test-billing.ts",
+    "reconcile": "tsx scripts/reconcile.ts",
+    "test:upstream-billing": "tsx scripts/test-upstream-billing.ts",
+    "measure:upstream": "tsx scripts/measure-bankai-multipliers.ts"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.6.8",
+    "@node-rs/argon2": "^2.2.2",
+    "@types/node": "^22.20.5",
+    "dotenv": "^18.0.10",
+    "tsx": "^4.23.15",
+    "typescript": "^5.9.3"
+  }
+}
