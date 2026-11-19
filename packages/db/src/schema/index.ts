@@ -6,3 +6,4 @@ export * from './enums.js';
 export * from './identity.js';
 export * from './messages.js';
 export * from './ops.js';
+export * from './verification.js';

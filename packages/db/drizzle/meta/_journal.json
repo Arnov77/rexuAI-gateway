@@ -57,6 +57,13 @@
       "when": 1795058338816,
       "tag": "0007_orders",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1795080186811,
+      "tag": "0008_email_verifications",
+      "breakpoints": true
     }
   ]
 }

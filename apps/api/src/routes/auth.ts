@@ -15,6 +15,7 @@ import { conflict, forbidden, unauthorized } from '../lib/errors.js';
 import { serializeWallet } from '../lib/serialize.js';
 import { getSetting } from '../lib/settings.js';
 import { parseWith } from '../lib/validate.js';
+import { sendRegisterOtp, verifyRegisterOtp } from '../modules/auth/otp.js';
 
 const { users, wallets } = schema;
 
@@ -27,6 +28,11 @@ const registerSchema = z.object({
   email: emailSchema,
   password: passwordSchema,
   name: z.string().trim().min(1).max(80),
+  otp: z.string().length(6),
+});
+
+const sendOtpSchema = z.object({
+  email: emailSchema,
 });
 
 async function walletFor(userId: string) {
@@ -84,6 +90,16 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
   });
 
   app.post(
+    '/send-otp',
+    { config: { rateLimit: { max: 5, timeWindow: '1 minute' } } },
+    async (request) => {
+      const input = parseWith(sendOtpSchema, request.body);
+      await sendRegisterOtp(input.email);
+      return { message: 'Kode verifikasi dikirim ke email kamu.' };
+    },
+  );
+
+  app.post(
     '/register',
     { config: { rateLimit: { max: 5, timeWindow: '1 minute' } } },
     async (request, reply) => {
@@ -92,6 +108,8 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
 
       const input = parseWith(registerSchema, request.body);
       const email = input.email.toLowerCase();
+
+      await verifyRegisterOtp(email, input.otp);
 
       const existing = await getDb()
         .select({ id: users.id })
@@ -115,6 +133,7 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
           name: input.name,
           role: 'customer',
           status: 'active',
+          emailVerifiedAt: new Date(),
         })
         .returning({
           id: users.id,

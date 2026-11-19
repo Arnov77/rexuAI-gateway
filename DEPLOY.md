@@ -265,6 +265,18 @@ openssl rand -hex 32
 | `MIDTRANS_CLIENT_KEY` | Ya | — | Client Key dari dashboard Midtrans. Disimpan untuk kebutuhan konfigurasi frontend/Midtrans Snap di masa depan. |
 | `MIDTRANS_ENV` | Tidak | `sandbox` | `sandbox` memakai `https://api.sandbox.midtrans.com`, `production` memakai `https://api.midtrans.com`. |
 
+### 4.4c Skymail (Email OTP)
+
+| Variable | Wajib | Default | Keterangan |
+|---|---|---|---|
+| `SKYMAIL_API_URL` | Ya | — | Endpoint kirim email Skymail. Contoh: `https://skymail.ink/api/email/send`. |
+| `SKYMAIL_TOKEN` | Ya | — | Token API Skymail. Hanya dipakai backend, jangan dikirim ke browser. |
+| `SKYMAIL_ACCOUNT_ID` | Ya | — | ID akun pengirim di Skymail (angka). |
+| `SKYMAIL_SENDER_NAME` | Tidak | `Rexu` | Nama pengirim yang tampil di inbox penerima. |
+| `SKYMAIL_SENDER_FROM` | Ya | — | Alamat email pengirim, misalnya `noreply@rexu.ai.id`. Domain pengirim harus sudah diverifikasi di Skymail. |
+
+Email dipakai untuk mengirim OTP registrasi. Detail setup ada di bagian **12c. Setup Email**.
+
 ### 4.5 Admin
 
 | Variable | Wajib | Default | Keterangan |
@@ -381,6 +393,16 @@ BILLING_MAX_RESERVE=1000000
 MIDTRANS_SERVER_KEY=GANTI_DENGAN_SERVER_KEY_MIDTRANS
 MIDTRANS_CLIENT_KEY=GANTI_DENGAN_CLIENT_KEY_MIDTRANS
 MIDTRANS_ENV=sandbox
+
+# ============================================================
+# Skymail (email OTP registrasi)
+# Domain pengirim harus sudah diverifikasi di Skymail.
+# ============================================================
+SKYMAIL_API_URL=https://skymail.ink/api/email/send
+SKYMAIL_TOKEN=GANTI_DENGAN_TOKEN_SKYMAIL
+SKYMAIL_ACCOUNT_ID=1
+SKYMAIL_SENDER_NAME=Rexu
+SKYMAIL_SENDER_FROM=noreply@rexu.ai.id
 
 # ============================================================
 # Admin (dipakai oleh npm run seed:admin)
@@ -1142,6 +1164,68 @@ Catatan:
 
 ---
 
+## 12c. Setup Email
+
+Email dipakai untuk mengirim **kode OTP registrasi** (6 digit) lewat Skymail. Tanpa konfigurasi ini, `POST /api/auth/send-otp` akan gagal dan API tidak bisa boot karena environment wajib belum lengkap.
+
+1. Buat akun di [skymail.ink](https://skymail.ink) dan login ke dashboard.
+2. Salin **API Token** dan **Account ID** dari halaman pengaturan/akun.
+3. Verifikasi domain pengirim (misalnya `rexu.ai.id`) di Skymail. Tambahkan record DNS yang diminta (SPF/DKIM) agar email tidak masuk spam.
+4. Tambahkan ke `.env` di server:
+
+   ```dotenv
+   SKYMAIL_API_URL=https://skymail.ink/api/email/send
+   SKYMAIL_TOKEN=...
+   SKYMAIL_ACCOUNT_ID=1
+   SKYMAIL_SENDER_NAME=Rexu
+   SKYMAIL_SENDER_FROM=noreply@rexu.ai.id
+   ```
+
+5. Jalankan migrasi dan restart API:
+
+   ```bash
+   npm run db:migrate
+   pm2 restart rexu-api --update-env
+   ```
+
+6. Pastikan registrasi publik aktif. Endpoint register menolak pendaftaran jika system setting `registration_mode` bukan `public`:
+
+   ```bash
+   # cara termudah: set REGISTRATION_MODE=public di .env lalu seed ulang
+   REGISTRATION_MODE=public npm run db:seed
+   ```
+
+   Ini akan menimpa setting `registration_mode` menjadi `public`. Hati-hati, seed juga menulis setting lain sesuai nilai env.
+
+7. Verifikasi pengiriman email:
+
+   ```bash
+   curl -sS -X POST http://127.0.0.1:3001/api/auth/send-otp \
+     -H 'content-type: application/json' \
+     -d '{"email":"alamat-uji@domain.id"}'
+   ```
+
+   Respons sukses:
+
+   ```json
+   { "message": "Kode verifikasi dikirim ke email kamu." }
+   ```
+
+   Cek inbox (dan folder spam). Kode berlaku 10 menit, bisa dikirim ulang setelah 60 detik, dan maksimal 5 percobaan salah per kode.
+
+8. Alur endpoint:
+
+   - `POST /api/auth/send-otp` → kirim OTP ke email.
+   - `POST /api/auth/register` → butuh `name`, `email`, `password`, dan `otp`.
+
+Catatan:
+- Email OTP disimpan sebagai hash argon2, bukan plaintext.
+- OTP lama yang belum dipakai dihapus setiap kali kode baru dibuat.
+- Jika pengiriman email gagal, baris OTP baru ikut dihapus supaya cooldown 60 detik tidak memblokir retry.
+- `SKYMAIL_SENDER_FROM` dipakai sebagai identitas pengirim yang didokumentasikan; pastikan domainnya sama dengan yang diverifikasi di Skymail.
+
+---
+
 ## 13. Monitoring & Maintenance
 
 ### 13.1 Perintah harian
@@ -1282,6 +1366,10 @@ Setelah restore, jalankan `npm run db:migrate` untuk memastikan schema berada di
 | API gagal boot: `Invalid environment` | `SESSION_SECRET`/`API_KEY_PEPPER` kurang dari 32 karakter, atau `BANKAI_API_KEY` kosong | Perbaiki `.env`, lalu `pm2 restart rexu-api`. Cek `pm2 logs rexu-api`. |
 | API gagal boot: `BILLING_ENABLED requires ...` | Billing aktif tanpa parity terverifikasi | Set `BILLING_UPSTREAM_PARITY_VERIFIED=true` setelah verifikasi, atau set `BILLING_ENABLED=false`. |
 | `Origin tidak diizinkan` di browser | `APP_URL`/`TRUSTED_ORIGINS` tidak memuat origin yang dipakai | Tambahkan origin lengkap (skema + host + port) ke `TRUSTED_ORIGINS`, restart API. |
+| Email OTP tidak masuk | `SKYMAIL_TOKEN`/`SKYMAIL_ACCOUNT_ID` salah, domain pengirim belum diverifikasi, atau masuk spam | Cek `pm2 logs rexu-api`, uji `POST /api/auth/send-otp`, verifikasi DNS domain di dashboard Skymail, cek folder spam. |
+| Log berisi `Authentication has expired` atau `respons Skymail kosong` | `SKYMAIL_TOKEN` kedaluwarsa | Login ulang ke Skymail, salin token baru ke `.env`, lalu `pm2 restart rexu-api --update-env`. |
+| `POST /api/auth/send-otp` balas `429` | Baru minta kode kurang dari 60 detik lalu | Tunggu 60 detik, lalu minta lagi. |
+| `POST /api/auth/register` balas `403` | `registration_mode` masih `closed` | Set `REGISTRATION_MODE=public` lalu `npm run db:seed`, atau ubah system setting `registration_mode`. |
 | `GET /api/health` 404 | Route health yang benar adalah `/healthz` | Gunakan `curl -sS http://127.0.0.1:3001/healthz` atau `/readyz`. |
 | `/v1/models` kosong | Belum sinkronisasi model atau semua model nonaktif | Admin → Models → Sinkronisasi, isi multiplier, aktifkan model. |
 
