@@ -1,7 +1,6 @@
 import { type FormEvent, useEffect, useRef, useState } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { PublicNav } from '../components/PublicNav';
-import { Button } from '../components/ui/Button';
 import { useAuth } from '../features/auth/AuthProvider';
 import { api } from '../lib/api';
 
@@ -35,6 +34,7 @@ export function LoginPage() {
   const [username, setUsername] = useState('');
   const [regEmail, setRegEmail] = useState('');
   const [regPassword, setRegPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [otp, setOtp] = useState('');
   const [regError, setRegError] = useState<string | null>(null);
   const [sendingOtp, setSendingOtp] = useState(false);
@@ -44,6 +44,7 @@ export function LoginPage() {
   const [resendMessage, setResendMessage] = useState<string | null>(null);
 
   const otpRef = useRef<HTMLInputElement>(null);
+  const passwordMismatch = confirmPassword.length > 0 && regPassword !== confirmPassword;
 
   useEffect(() => {
     if (tab === 'register' && step === 'otp') otpRef.current?.focus();
@@ -99,6 +100,7 @@ export function LoginPage() {
       setRegError('Password minimal 8 karakter.');
       return;
     }
+    if (passwordMismatch) return;
 
     setSendingOtp(true);
 
@@ -268,9 +270,13 @@ export function LoginPage() {
                   </p>
                 ) : null}
 
-                <Button type="submit" disabled={loginBusy} className="mt-6 w-full">
+                <button
+                  type="submit"
+                  disabled={loginBusy}
+                  className="mt-6 w-full bg-oxide py-3 text-sm font-medium text-chalk transition-opacity duration-150 hover:opacity-90 disabled:opacity-60"
+                >
                   {loginBusy ? 'Memeriksa' : 'Masuk'}
-                </Button>
+                </button>
               </form>
             ) : step === 'form' ? (
               <form onSubmit={(event) => void sendOtp(event)}>
@@ -327,6 +333,24 @@ export function LoginPage() {
                       placeholder="Minimal 8 karakter"
                     />
                   </label>
+                  <label className="block">
+                    <span className="text-sm font-medium">Ulangi password</span>
+                    <input
+                      type="password"
+                      autoComplete="new-password"
+                      required
+                      value={confirmPassword}
+                      onChange={(event) => {
+                        setConfirmPassword(event.target.value);
+                        setRegError(null);
+                      }}
+                      className={inputClass}
+                      placeholder="Ulangi password kamu"
+                    />
+                    {passwordMismatch ? (
+                      <span className="mt-1 block text-xs text-oxide">Password tidak cocok</span>
+                    ) : null}
+                  </label>
                 </div>
 
                 {regError ? (
@@ -337,7 +361,7 @@ export function LoginPage() {
 
                 <button
                   type="submit"
-                  disabled={sendingOtp}
+                  disabled={sendingOtp || passwordMismatch}
                   className="mt-6 w-full bg-oxide py-3 text-sm font-medium text-chalk transition-opacity duration-150 hover:opacity-90 disabled:opacity-60"
                 >
                   {sendingOtp ? 'Mengirim...' : 'Daftar'}
