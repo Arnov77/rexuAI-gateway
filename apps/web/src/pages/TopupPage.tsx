@@ -409,7 +409,7 @@ export function TopupPage() {
               {history.map((item) => (
                 <li
                   key={item.id}
-                  className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-4 py-3 last:border-b-0"
+                  className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-2 border-b border-line px-4 py-3 last:border-b-0 sm:grid-cols-[minmax(0,1fr)_auto_auto]"
                 >
                   <div className="min-w-0">
                     <p className="truncate text-sm font-medium">{item.packageName}</p>
@@ -417,25 +417,27 @@ export function TopupPage() {
                       {formatDate(item.createdAt)}
                     </p>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <div className="text-right">
-                      <p className="font-mono text-sm">Rp {formatNumber(item.amountIdr)}</p>
-                      <p
-                        className={`font-mono text-xs ${
-                          item.status === 'paid' ? 'text-petrol' : 'text-muted'
-                        }`}
-                      >
-                        {item.status === 'paid' ? '+' : ''}
-                        {formatNumber(item.rcAmount)} RC
-                      </p>
-                    </div>
+                  <div className="text-right">
+                    <p className="font-mono text-sm whitespace-nowrap">
+                      Rp {formatNumber(item.amountIdr)}
+                    </p>
+                    <p
+                      className={`font-mono text-xs whitespace-nowrap ${
+                        item.status === 'paid' ? 'text-petrol' : 'text-muted'
+                      }`}
+                    >
+                      {item.status === 'paid' ? '+' : ''}
+                      {formatNumber(item.rcAmount)} RC
+                    </p>
+                  </div>
+                  <div className="col-span-2 flex items-center justify-end gap-2 sm:col-span-1">
                     <StatusBadge status={item.status} />
                     {canResume(item) ? (
                       <button
                         type="button"
                         onClick={() => void resumeOrder(item)}
                         disabled={resumingId === item.id}
-                        className="shrink-0 border border-oxide px-3 py-1 text-xs text-oxide transition-colors duration-150 hover:bg-oxide/5 disabled:opacity-40"
+                        className="inline-flex min-h-9 shrink-0 items-center justify-center border border-oxide px-3 text-xs text-oxide transition-colors duration-150 hover:bg-oxide/5 disabled:opacity-40"
                       >
                         {resumingId === item.id ? 'Membuka…' : 'Lanjutkan'}
                       </button>

@@ -51,8 +51,6 @@ export function QrisModal({
     onSuccessRef.current = onSuccess;
   }, [onSuccess]);
 
-  const canClose = status !== 'pending';
-
   const markPaid = useCallback(
     (remainingRc: number) => {
       paidBalanceRef.current = Number.isFinite(remainingRc) ? remainingRc : rcAmount;
@@ -172,12 +170,12 @@ export function QrisModal({
     if (!isOpen) return;
 
     function onKeyDown(event: KeyboardEvent) {
-      if (event.key === 'Escape' && canClose) closeModal();
+      if (event.key === 'Escape') closeModal();
     }
 
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [canClose, closeModal, isOpen]);
+  }, [closeModal, isOpen]);
 
   if (!isOpen) return null;
 
@@ -186,18 +184,15 @@ export function QrisModal({
       <button
         type="button"
         aria-label="Tutup modal"
-        disabled={!canClose}
-        onClick={() => {
-          if (canClose) closeModal();
-        }}
-        className="absolute inset-0 cursor-default bg-ink/50 disabled:cursor-not-allowed"
+        onClick={closeModal}
+        className="absolute inset-0 cursor-default bg-black/60"
       />
 
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby="qris-modal-title"
-        className="relative w-full max-w-sm border border-line bg-paper p-6 dark:bg-[#1a1a18]"
+        className="relative z-10 max-h-[calc(100dvh-2rem)] w-full max-w-sm overflow-y-auto border border-line bg-paper p-6 shadow-2xl dark:bg-[#1a1a18]"
       >
         <div className="flex items-start justify-between gap-4">
           <h2
@@ -209,11 +204,8 @@ export function QrisModal({
           <button
             type="button"
             aria-label="Tutup"
-            disabled={!canClose}
-            onClick={() => {
-              if (canClose) closeModal();
-            }}
-            className="ml-auto text-lg leading-none text-muted transition-colors duration-150 hover:text-ink disabled:cursor-not-allowed disabled:opacity-30"
+            onClick={closeModal}
+            className="-mt-2 -mr-2 inline-flex size-11 shrink-0 items-center justify-center text-2xl leading-none text-muted transition-colors duration-150 hover:text-ink"
           >
             ×
           </button>
