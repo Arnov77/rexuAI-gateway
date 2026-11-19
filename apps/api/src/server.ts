@@ -14,7 +14,8 @@ process.once('SIGTERM', () => void shutdown('SIGTERM'));
 process.once('SIGINT', () => void shutdown('SIGINT'));
 
 try {
-  await app.listen({ host: '0.0.0.0', port: env.PORT });
+  // Hanya loopback: trafik publik harus lewat nginx di host yang sama.
+  await app.listen({ host: '127.0.0.1', port: env.PORT });
 
   if (env.TELEGRAM_BOT_TOKEN && env.TELEGRAM_CHAT_ID) {
     startMonitorCrons(app.log);

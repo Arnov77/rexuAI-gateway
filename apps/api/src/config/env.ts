@@ -59,10 +59,10 @@ const envSchema = z.object({
         .map((origin) => origin.trim())
         .filter((origin) => origin.length > 0),
     ),
-  TRUST_PROXY: z
-    .string()
-    .default('false')
-    .transform((value) => value === 'true'),
+  // Jumlah hop proxy yang dipercaya. 1 = percaya tepat satu hop (nginx langsung),
+  // 0 = tidak percaya proxy sama sekali. Jangan gunakan `true` karena Fastify akan
+  // mempercayai seluruh rantai X-Forwarded-For yang bisa dipalsukan client.
+  TRUST_PROXY: z.coerce.number().int().min(0).default(1),
 });
 
 const parsed = envSchema.safeParse(process.env);

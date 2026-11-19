@@ -64,6 +64,13 @@
       "when": 1795080186811,
       "tag": "0008_email_verifications",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1795126232331,
+      "tag": "0009_email_index",
+      "breakpoints": true
     }
   ]
 }

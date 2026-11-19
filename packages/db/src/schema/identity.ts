@@ -27,7 +27,7 @@ export const users = pgTable(
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
-  (table) => [uniqueIndex('users_email_lower_uq').on(sql`lower(${table.email})`)],
+  (table) => [uniqueIndex('users_email_unique').on(table.email)],
 );
 
 export const sessions = pgTable(

@@ -40,7 +40,12 @@ export async function buildApp() {
         censor: '[redacted]',
       },
     },
-    trustProxy: env.TRUST_PROXY,
+    // Fastify 5.12 menganggap trustProxy numerik sebagai "trust none" (fail closed).
+    // Gunakan fungsi yang setara: percaya `TRUST_PROXY` hop pertama. Dengan nilai 1,
+    // hanya socket loopback (nginx) yang dipercaya; IP client diambil dari
+    // X-Forwarded-For yang sudah ditimpa nginx dengan $remote_addr.
+    trustProxy:
+      env.TRUST_PROXY === 0 ? false : (_address: string, hop: number) => hop < env.TRUST_PROXY,
     bodyLimit: 12 * 1024 * 1024,
     requestIdHeader: 'x-request-id',
   });

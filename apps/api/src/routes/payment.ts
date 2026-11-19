@@ -36,6 +36,8 @@ export async function paymentRoutes(app: FastifyInstance): Promise<void> {
     const signatureKey = asString(body.signature_key);
     const transactionStatus = asString(body.transaction_status);
     const transactionId = asString(body.transaction_id);
+    const paymentType = asString(body.payment_type) || undefined;
+    const fraudStatus = asString(body.fraud_status) || undefined;
 
     request.log.info(
       {
@@ -82,7 +84,13 @@ export async function paymentRoutes(app: FastifyInstance): Promise<void> {
       let eventStatus: 'processed' | 'ignored' = 'ignored';
 
       if (transactionStatus === 'settlement' || transactionStatus === 'capture') {
-        const result = await processPayment(orderId, body);
+        const result = await processPayment(orderId, body, {
+          grossAmount,
+          paymentType,
+          transactionStatus,
+          fraudStatus: fraudStatus ?? null,
+          logger: request.log,
+        });
         eventStatus = result.status === 'paid' ? 'processed' : 'ignored';
       } else {
         const terminalStatus = TERMINAL_STATUS[transactionStatus];

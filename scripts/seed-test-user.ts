@@ -1,7 +1,7 @@
 import { createHmac, randomBytes } from 'node:crypto';
 import { hash } from '@node-rs/argon2';
 import { API_KEY_PREFIX } from '@rexu/shared';
-import { eq, sql } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import { createDb, loadEnv } from '../packages/db/src/index.js';
 import { apiKeys, users, wallets } from '../packages/db/src/schema/index.js';
 
@@ -58,7 +58,7 @@ try {
   const [existingUser] = await db
     .select({ id: users.id })
     .from(users)
-    .where(sql`lower(${users.email}) = ${TEST_USER.email}`)
+    .where(eq(users.email, TEST_USER.email.toLowerCase()))
     .limit(1);
 
   const rawKey = generateApiKey();

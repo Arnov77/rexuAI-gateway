@@ -311,7 +311,7 @@ Monitor memakai Telegram Bot API Rich Message (`sendRichMessage`). Notifikasi di
 | `NODE_ENV` | Tidak | `development` | Set `production` di server. PM2 sudah mengeset ini. |
 | `APP_URL` | Ya (produksi) | `http://localhost:5173` | Origin utama yang diizinkan CORS. **Wajib** diisi URL publik, misalnya `https://rexu.ai.id`. Jika salah, browser akan diblokir CORS. |
 | `TRUSTED_ORIGINS` | Tidak | `""` | Origin tambahan, dipisahkan koma, harus menyertakan skema. Contoh: `https://rexu.ai.id,http://10.0.0.5:21072`. |
-| `TRUST_PROXY` | Tidak | `false` | Set `true` jika API di belakang reverse proxy (nginx/Caddy). PM2 sudah mengeset `true`. |
+| `TRUST_PROXY` | Tidak | `1` | Jumlah hop proxy yang dipercaya. `1` = tepat satu hop (nginx langsung), `0` = tidak percaya proxy. Jangan isi `true`/`false`; schema env memvalidasi angka. PM2 sudah mengeset `1`. |
 
 ### 4.8 Variable yang tidak dibaca codebase
 
@@ -319,7 +319,7 @@ Bagian ini penting agar tidak ada salah paham. Variable berikut **tidak dibaca**
 
 | Variable | Status di codebase |
 |---|---|
-| `HOST` | Tidak ada. Server selalu listen di `0.0.0.0`. |
+| `HOST` | Tidak ada. Server selalu listen di `127.0.0.1` (loopback); trafik publik wajib lewat nginx. |
 | `BILLING_DEFAULT_RESERVE` | Tidak ada sebagai env. Nilai efektifnya adalah system setting `billing_default_reserve` (seed `8192`). Ubah lewat seed/DB, bukan `.env`. |
 
 ### 4.9 Environment khusus script verifikasi
@@ -346,7 +346,7 @@ NODE_ENV=production
 PORT=3001
 APP_URL=https://rexu.ai.id
 LOG_LEVEL=info
-TRUST_PROXY=true
+TRUST_PROXY=1
 TRUSTED_ORIGINS=https://rexu.ai.id
 
 # ============================================================
@@ -592,7 +592,7 @@ module.exports = {
       env: {
         NODE_ENV: 'production',
         PORT: '3001',
-        TRUST_PROXY: 'true',
+        TRUST_PROXY: '1',
       },
     },
   ],
@@ -720,7 +720,7 @@ server {
     proxy_http_version 1.1;
     proxy_set_header Host $host;
     proxy_set_header X-Real-IP $remote_addr;
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-For $remote_addr;
     proxy_set_header X-Forwarded-Proto $scheme;
   }
 
@@ -729,7 +729,7 @@ server {
     proxy_http_version 1.1;
     proxy_set_header Host $host;
     proxy_set_header X-Real-IP $remote_addr;
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-For $remote_addr;
     proxy_set_header X-Forwarded-Proto $scheme;
     proxy_buffering off;
     proxy_cache off;
@@ -747,7 +747,7 @@ Penjelasan tiap block:
 - **`root /var/www/rexu/web`** — lokasi hasil `rsync` dari `apps/web/dist/`. Harus sama dengan langkah 7.
 - **`client_max_body_size 12m`** — menyesuaikan `bodyLimit` Fastify (12 MB) untuk request dengan gambar/vision.
 - **`location /assets/`** — file ber-hash di-cache setahun dan `immutable`. `try_files $uri =404` mencegah fallback SPA untuk asset yang hilang (lebih mudah mendeteksi deploy tidak lengkap).
-- **`location /api/`** — meneruskan API dashboard/auth ke Fastify. Header `X-Forwarded-*` penting agar `TRUST_PROXY=true` bekerja dan cookie/session aman.
+- **`location /api/`** — meneruskan API dashboard/auth ke Fastify. Header `X-Forwarded-*` penting agar `TRUST_PROXY=1` bekerja dan cookie/session aman. `X-Forwarded-For` ditimpa dengan `$remote_addr` agar client tidak bisa memalsukan IP untuk melewati rate limit.
 - **`location /v1/`** — endpoint OpenAI-compatible. `proxy_buffering off` dan `proxy_cache off` wajib agar SSE/streaming tidak tertahan di buffer nginx.
 - **`location /`** — fallback SPA: semua route yang bukan file statis diarahkan ke `index.html`, sehingga refresh di `/app/playground` tidak 404.
 

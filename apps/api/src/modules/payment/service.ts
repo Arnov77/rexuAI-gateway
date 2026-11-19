@@ -189,13 +189,34 @@ export async function createOrder(params: {
   };
 }
 
+export type ProcessPaymentOptions = {
+  grossAmount?: string;
+  paymentType?: string;
+  transactionStatus?: string;
+  fraudStatus?: string | null;
+  logger?: FastifyBaseLogger;
+};
+
+function warnProcessPayment(
+  logger: FastifyBaseLogger | undefined,
+  data: Record<string, unknown>,
+  message: string,
+): void {
+  if (logger) logger.warn(data, message);
+  else console.warn(message, data);
+}
+
 /**
  * Menandai order lunas, menambah saldo RC, dan menulis audit trail.
  * Idempotent: order yang sudah paid tidak diproses ulang.
+ *
+ * options dipakai untuk memvalidasi payload webhook (nominal, metode, fraud)
+ * sebelum status order diubah.
  */
 export async function processPayment(
   midtransOrderId: string,
   webhookPayload: unknown,
+  options: ProcessPaymentOptions = {},
 ): Promise<{ processed: boolean; status: string }> {
   const payload = asRecord(webhookPayload);
 
@@ -210,6 +231,40 @@ export async function processPayment(
     if (!order) return { processed: false, status: 'not_found' };
     if (order.status === 'paid') return { processed: false, status: 'paid' };
     if (order.status !== 'pending') return { processed: false, status: order.status };
+
+    // Validasi gross_amount: nominal yang dibayar harus sama dengan harga order.
+    if (options.grossAmount !== undefined) {
+      const paidAmount = Math.round(Number.parseFloat(options.grossAmount));
+      const expectedAmount = orderAmount(order);
+      if (!Number.isFinite(paidAmount) || paidAmount !== expectedAmount) {
+        warnProcessPayment(
+          options.logger,
+          { midtransOrderId, grossAmount: options.grossAmount, paidAmount, expectedAmount },
+          'gross_amount mismatch — webhook diabaikan',
+        );
+        return { processed: false, status: 'amount_mismatch' };
+      }
+    }
+
+    // Order Rexu hanya dibuat dengan QRIS.
+    if (options.paymentType !== undefined && options.paymentType !== 'qris') {
+      warnProcessPayment(
+        options.logger,
+        { midtransOrderId, paymentType: options.paymentType },
+        'payment_type tidak sesuai — webhook diabaikan',
+      );
+      return { processed: false, status: 'payment_type_mismatch' };
+    }
+
+    // Untuk transaksi capture, fraud_status harus accept.
+    if (options.transactionStatus === 'capture' && options.fraudStatus !== 'accept') {
+      warnProcessPayment(
+        options.logger,
+        { midtransOrderId, fraudStatus: options.fraudStatus },
+        'fraud_status bukan accept — webhook diabaikan',
+      );
+      return { processed: false, status: 'fraud_status_rejected' };
+    }
 
     const paidAt = new Date();
     const midtransTransactionId = asString(payload.transaction_id) ?? order.midtransTransactionId;
@@ -355,7 +410,11 @@ export async function syncOrderStatus(
   const status = await checkTransactionStatus(order.providerRef);
 
   if (status.transactionStatus === 'settlement' || status.transactionStatus === 'capture') {
-    await processPayment(order.providerRef, status.raw);
+    await processPayment(order.providerRef, status.raw, {
+      grossAmount: status.grossAmount ?? undefined,
+      transactionStatus: status.transactionStatus,
+      fraudStatus: status.fraudStatus,
+    });
   } else if (status.transactionStatus === 'expire') {
     await setOrderTerminalStatus(order.providerRef, 'expired', status.raw);
   } else if (status.transactionStatus === 'cancel') {

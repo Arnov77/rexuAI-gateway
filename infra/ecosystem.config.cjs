@@ -13,7 +13,7 @@ module.exports = {
       env: {
         NODE_ENV: 'production',
         PORT: '3001',
-        TRUST_PROXY: 'true',
+        TRUST_PROXY: '1',
       },
     },
   ],
