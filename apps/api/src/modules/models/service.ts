@@ -1,4 +1,5 @@
 import { getDb, schema } from '@rexu/db';
+import { bankaiMultiplierBpFor, hasVerifiedBankaiMultiplier } from '@rexu/shared';
 import { and, eq, inArray, like, notInArray, or, sql } from 'drizzle-orm';
 import { badRequest, notFound } from '../../lib/errors.js';
 import { serializeModel } from '../../lib/serialize.js';
@@ -15,6 +16,7 @@ export async function syncModels(): Promise<{
   created: number;
   missing: number;
   skippedFree: number;
+  unverified: number;
 }> {
   const upstream = await bankai.listModels();
   const now = new Date();
@@ -28,6 +30,9 @@ export async function syncModels(): Promise<{
       : [];
   const existingIds = new Set(existing.map((row) => row.id));
   const created = ids.filter((id) => !existingIds.has(id)).length;
+  const unverified = paid.filter(
+    (model) => !existingIds.has(model.id) && !hasVerifiedBankaiMultiplier(model.id),
+  ).length;
 
   if (ids.length > 0) {
     await getDb()
@@ -46,6 +51,7 @@ export async function syncModels(): Promise<{
           isAvailable: Boolean(model.available),
           isEnabled: false,
           multiplierBp: null,
+          bankaiMultiplierBp: bankaiMultiplierBpFor(model.id),
           upstreamMetadata: model as unknown as Record<string, unknown>,
           lastSyncedAt: now,
           updatedAt: now,
@@ -85,6 +91,7 @@ export async function syncModels(): Promise<{
     created,
     missing: missing.length,
     skippedFree: upstream.length - ids.length,
+    unverified,
   };
 }
 

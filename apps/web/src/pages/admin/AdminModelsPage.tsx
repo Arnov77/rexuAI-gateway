@@ -7,6 +7,7 @@ type SyncResult = {
   created: number;
   missing: number;
   skippedFree: number;
+  unverified: number;
 };
 
 function formatMultiplier(value: number | null | undefined): string {
@@ -45,6 +46,7 @@ export function AdminModelsPage() {
   const [error, setError] = useState<string | null>(null);
   const [syncBusy, setSyncBusy] = useState(false);
   const [syncMessage, setSyncMessage] = useState<string | null>(null);
+  const [syncWarning, setSyncWarning] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draftMultiplier, setDraftMultiplier] = useState('');
   const [draftBankai, setDraftBankai] = useState('');
@@ -68,6 +70,7 @@ export function AdminModelsPage() {
     setSyncBusy(true);
     setError(null);
     setSyncMessage(null);
+    setSyncWarning(null);
     try {
       const data = await api<{ data: SyncResult }>('/api/admin/models/sync', { method: 'POST' });
       setSyncMessage(
@@ -75,6 +78,11 @@ export function AdminModelsPage() {
           ? `${data.data.created} model baru ditemukan`
           : 'Katalog sudah terkini',
       );
+      if (data.data.unverified > 0) {
+        setSyncWarning(
+          `${data.data.unverified} model baru belum punya multiplier terverifikasi. Model tersebut memakai default 1× dan tetap nonaktif sampai diatur manual.`,
+        );
+      }
       await load();
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'Gagal menyinkronkan model');
@@ -245,6 +253,10 @@ export function AdminModelsPage() {
 
       {syncMessage ? (
         <p className="mt-4 border-l-2 border-petrol pl-3 text-xs text-petrol">{syncMessage}</p>
+      ) : null}
+
+      {syncWarning ? (
+        <p className="mt-2 border-l-2 border-oxide pl-3 text-xs text-oxide">{syncWarning}</p>
       ) : null}
 
       {error ? (

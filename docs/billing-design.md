@@ -162,7 +162,7 @@ Saat reservasi:
 
 ## 7. Multiplier dan model gratis
 
-- `models.bankai_multiplier_bp`: tarif BankAI, diisi manual dari tabel terverifikasi, hanya untuk admin.
+- `models.bankai_multiplier_bp`: tarif BankAI, diisi dari tabel terverifikasi di `packages/shared/src/bankai-multipliers.ts`. Sync otomatis memakai nilai itu untuk model baru; model yang belum terverifikasi memakai default 1x dan tetap nonaktif sampai diatur manual.
 - `models.multiplier_bp`: markup Rexu, boleh dipublikasikan ke pelanggan.
 - Keduanya disnapshot ke `usage_logs` saat request dibuat dan dipakai saat settlement.
 - Model gratis BankAI (`gateway="free"` atau ID berakhiran `-FREE`) tidak disinkronkan sebagai model berbayar; jika sudah ada, dinonaktifkan dan dibuat tidak tersedia.

@@ -22,6 +22,7 @@
     "check:billing": "tsx scripts/check-billing.ts",
     "test:billing": "tsx scripts/test-billing.ts",
     "reconcile": "tsx scripts/reconcile.ts",
+    "backfill:bankai-multipliers": "tsx scripts/backfill-bankai-multipliers.ts",
     "test:upstream-billing": "tsx scripts/test-upstream-billing.ts",
     "measure:upstream": "tsx scripts/measure-bankai-multipliers.ts"
   },

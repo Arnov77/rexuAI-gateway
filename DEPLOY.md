@@ -1026,6 +1026,22 @@ Catatan:
 - Jika migrasi gagal, **jangan** lanjut restart. Perbaiki koneksi/URL database terlebih dahulu.
 - `git pull` hanya berlaku jika repo memiliki remote. Jika deploy dilakukan dengan menyalin file, lewati langkah ini.
 
+### Backfill multiplier BankAI
+
+Sinkronisasi model mengisi `bankai_multiplier_bp` dari tabel terverifikasi di `packages/shared/src/bankai-multipliers.ts`. Model baru yang belum ada di tabel tetap memakai default 1x, nonaktif, dan ditandai di admin.
+
+Untuk database lama yang terlanjur memiliki model dengan multiplier default 1x:
+
+```bash
+# Lihat rencana perubahan tanpa menulis apa pun
+npm run backfill:bankai-multipliers
+
+# Terapkan setelah hasil dry-run sesuai
+npm run backfill:bankai-multipliers -- --apply
+```
+
+Script hanya mengubah baris yang masih memakai default 1x dan ada di tabel terverifikasi. Markup Rexu (`multiplier_bp`) tidak diubah.
+
 ---
 
 ## 12. Aktifkan Billing
