@@ -9,24 +9,23 @@ const navLinks = [
   { href: '#mulai', label: 'Mulai' },
   { href: '#chat', label: 'Chat' },
   { href: '#models', label: 'Model' },
-  { href: '#error', label: 'Error' },
+  { href: '#integrasi', label: 'Integrasi' },
 ];
 
 const sections = [
-  { id: 'mulai', label: 'Mulai cepat' },
+  { id: 'mulai', label: 'Quick Start' },
   { id: 'autentikasi', label: 'Autentikasi' },
-  { id: 'chat', label: 'Chat completions' },
+  { id: 'chat', label: 'Chat Completions' },
   { id: 'streaming', label: 'Streaming' },
-  { id: 'models', label: 'Daftar model' },
-  { id: 'usage', label: 'Pemakaian' },
-  { id: 'rc', label: 'RC & billing' },
-  { id: 'error', label: 'Rate limit & error' },
+  { id: 'models', label: 'Daftar Model' },
+  { id: 'error', label: 'Error' },
+  { id: 'integrasi', label: 'Integrasi AI Tools' },
 ];
 
 const facts = [
   { label: 'Base URL', value: BASE_URL },
   { label: 'Format', value: 'OpenAI-compatible' },
-  { label: 'Autentikasi', value: 'Bearer sk-rxu-...' },
+  { label: 'Autentikasi', value: 'Bearer API key' },
 ];
 
 const steps: Array<{ title: string; body: ReactNode }> = [
@@ -34,8 +33,14 @@ const steps: Array<{ title: string; body: ReactNode }> = [
     title: 'Buat akun',
     body: (
       <>
-        Di halaman Masuk, pilih tab Daftar. Isi email dan password minimal 8 karakter, lalu masukkan
-        OTP 6 digit yang dikirim ke email.
+        Daftar di{' '}
+        <a
+          href="https://rexu.ai.id"
+          className="text-ink underline decoration-line underline-offset-4 hover:decoration-ink"
+        >
+          rexu.ai.id
+        </a>
+        , lalu masuk ke dashboard.
       </>
     ),
   },
@@ -43,88 +48,99 @@ const steps: Array<{ title: string; body: ReactNode }> = [
     title: 'Buat API key',
     body: (
       <>
-        Buka menu API key dan buat key baru. Raw key hanya ditampilkan sekali, jadi simpan di tempat
-        aman.
+        Buka menu{' '}
+        <Link
+          to="/app/keys"
+          className="text-ink underline decoration-line underline-offset-4 hover:decoration-ink"
+        >
+          API Key
+        </Link>{' '}
+        dan buat key baru. Raw key hanya tampil sekali.
       </>
     ),
   },
   {
-    title: 'Isi saldo RC',
-    body: <>Top up lewat QRIS. Minimum Rp 2.000 dan RC tidak kedaluwarsa selama akun aktif.</>,
+    title: 'Top up RC',
+    body: (
+      <>
+        Isi saldo RC lewat QRIS di menu{' '}
+        <Link
+          to="/app/topup"
+          className="text-ink underline decoration-line underline-offset-4 hover:decoration-ink"
+        >
+          Top up
+        </Link>
+        .
+      </>
+    ),
   },
   {
     title: 'Panggil API',
-    body: (
-      <>
-        Arahkan SDK ke <Mono>{BASE_URL}</Mono> dan kirim API key lewat header Authorization.
-      </>
-    ),
+    body: <>Kirim request pertama dengan contoh cURL di bawah.</>,
   },
 ];
 
-const quickStartCurl = `curl ${BASE_URL}/chat/completions \\
+const quickStartCurl = `curl https://rexu.ai.id/v1/chat/completions \\
   -H "Content-Type: application/json" \\
   -H "Authorization: Bearer sk-rxu-..." \\
   -d '{
     "model": "deepseek-v4.1-flash",
     "messages": [
-      {"role": "user", "content": "Halo, kenalan dulu."}
+      {"role": "user", "content": "Halo!"}
     ]
   }'`;
 
-const authHeader = `Authorization: Bearer sk-rxu-...
-Content-Type: application/json`;
+const authHeader = `Authorization: Bearer sk-rxu-...`;
 
 const chatPython = `from openai import OpenAI
 
 client = OpenAI(
-    base_url="${BASE_URL}",
+    base_url="https://rexu.ai.id/v1",
     api_key="sk-rxu-...",
 )
 
 response = client.chat.completions.create(
     model="deepseek-v4.1-flash",
-    messages=[
-        {"role": "system", "content": "Jawab singkat dalam bahasa Indonesia."},
-        {"role": "user", "content": "Apa itu RC?"},
-    ],
-    temperature=0.7,
+    messages=[{"role": "user", "content": "Halo!"}],
 )
 
 print(response.choices[0].message.content)`;
 
+const chatNode = `import OpenAI from "openai";
+
+const client = new OpenAI({
+  baseURL: "https://rexu.ai.id/v1",
+  apiKey: "sk-rxu-...",
+});
+
+const response = await client.chat.completions.create({
+  model: "deepseek-v4.1-flash",
+  messages: [{ role: "user", content: "Halo!" }],
+});
+
+console.log(response.choices[0].message.content);`;
+
 const chatResponse = `{
   "id": "chatcmpl-...",
   "object": "chat.completion",
-  "created": 1760000000,
   "model": "deepseek-v4.1-flash",
-  "choices": [
-    {
-      "index": 0,
-      "message": {
-        "role": "assistant",
-        "content": "RC adalah Rexu Credit, unit billing Rexu."
-      },
-      "finish_reason": "stop"
-    }
-  ],
+  "choices": [{
+    "message": {
+      "role": "assistant",
+      "content": "Halo! Ada yang bisa saya bantu?"
+    },
+    "finish_reason": "stop"
+  }],
   "usage": {
-    "prompt_tokens": 38,
-    "completion_tokens": 14,
-    "total_tokens": 52
+    "prompt_tokens": 10,
+    "completion_tokens": 12,
+    "total_tokens": 22
   }
 }`;
 
-const streamPython = `from openai import OpenAI
-
-client = OpenAI(
-    base_url="${BASE_URL}",
-    api_key="sk-rxu-...",
-)
-
-stream = client.chat.completions.create(
+const streamPython = `stream = client.chat.completions.create(
     model="deepseek-v4.1-flash",
-    messages=[{"role": "user", "content": "Tulis pantun singkat."}],
+    messages=[{"role": "user", "content": "Ceritakan sesuatu."}],
     stream=True,
 )
 
@@ -133,66 +149,42 @@ for chunk in stream:
     if delta:
         print(delta, end="", flush=True)`;
 
-const streamSse = `data: {"id":"chatcmpl-...","object":"chat.completion.chunk","choices":[{"index":0,"delta":{"content":"Halo"},"finish_reason":null}]}
-
-data: {"id":"chatcmpl-...","object":"chat.completion.chunk","choices":[{"index":0,"delta":{},"finish_reason":"stop"}]}
-
-data: [DONE]`;
-
 const modelsResponse = `{
   "object": "list",
   "data": [
     {
       "id": "deepseek-v4.1-flash",
       "object": "model",
-      "created": 1760000000,
-      "owned_by": "bankai",
       "vision": true,
-      "streaming": true,
-      "rexu": {
-        "displayName": "DeepSeek V4.1 Flash",
-        "multiplier": 1.2,
-        "multiplierBp": 12000,
-        "vision": true,
-        "streaming": true
-      }
-    }
-  ]
-}`;
-
-const usageResponse = `{
-  "object": "usage",
-  "key": {
-    "id": "8f14e45f-ea3b-4f0e-9c1a-2b7d6f1c9a01",
-    "name": "produksi"
-  },
-  "period": {
-    "from": "2026-11-01T00:00:00.000Z",
-    "to": null
-  },
-  "totals": {
-    "requests": 128,
-    "rawTokens": 402130,
-    "rcDeducted": 5400
-  },
-  "by_model": [
-    {
-      "model": "deepseek-v4.1-flash",
-      "requests": 120,
-      "raw_tokens": 380000,
-      "rc_deducted": 5100
+      "streaming": true
     }
   ]
 }`;
 
 const errorResponse = `{
   "error": {
-    "message": "Batas request API key tercapai",
-    "type": "rate_limit_error",
-    "code": "rate_limited",
+    "message": "Pesan error",
+    "code": "kode_error",
     "request_id": "req-..."
   }
 }`;
+
+const openCodeConfig = `[providers.rexu]
+type = "openai-compatible"
+base_url = "https://rexu.ai.id/v1"
+api_key = "sk-rxu-..."
+
+[model]
+provider = "rexu"
+model = "deepseek-v4.1-flash"`;
+
+const aiderCommand = `aider --openai-api-base https://rexu.ai.id/v1 \\
+      --openai-api-key sk-rxu-... \\
+      --model deepseek-v4.1-flash`;
+
+const litellmConfig = `model = "openai/deepseek-v4.1-flash"
+api_base = "https://rexu.ai.id/v1"
+api_key = "sk-rxu-..."`;
 
 function Mono({ children }: { children: ReactNode }) {
   return (
@@ -281,7 +273,6 @@ function Endpoint({ method, path }: { method: 'GET' | 'POST'; path: string }) {
         {method}
       </span>
       <code className="font-mono text-sm break-all">{path}</code>
-      <span className="ml-auto font-mono text-[10px] tracking-wider text-muted">JSON</span>
     </div>
   );
 }
@@ -305,33 +296,15 @@ function DataTable({ head, children }: { head: string[]; children: ReactNode }) 
   );
 }
 
-function Note({ children, tone = 'petrol' }: { children: ReactNode; tone?: 'petrol' | 'oxide' }) {
-  return (
-    <div
-      className={`border-l-2 pl-3 text-sm leading-relaxed text-muted ${
-        tone === 'oxide' ? 'border-oxide' : 'border-petrol'
-      }`}
-    >
-      {children}
-    </div>
-  );
+function TableRow({ children }: { children: ReactNode }) {
+  return <tr className="border-b border-line last:border-b-0">{children}</tr>;
 }
 
-function SectionHeading({
-  number,
-  title,
-  intro,
-}: {
-  number: string;
-  title: string;
-  intro: string;
-}) {
+function Cell({ children, mono = false }: { children: ReactNode; mono?: boolean }) {
   return (
-    <>
-      <p className="font-mono text-[10px] tracking-[0.18em] text-muted uppercase">{number}</p>
-      <h2 className="mt-2 text-2xl font-bold tracking-[-0.04em] sm:text-3xl">{title}</h2>
-      <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted sm:text-base">{intro}</p>
-    </>
+    <td className={`px-3 py-2.5 ${mono ? 'font-mono text-xs' : 'text-sm'} leading-relaxed`}>
+      {children}
+    </td>
   );
 }
 
@@ -353,21 +326,11 @@ function DocSection({
       id={id}
       className="scroll-mt-32 border-t border-line py-10 first:border-t-0 first:pt-0 lg:scroll-mt-20"
     >
-      <SectionHeading number={number} title={title} intro={intro} />
+      <p className="font-mono text-[10px] tracking-[0.18em] text-muted uppercase">{number}</p>
+      <h2 className="mt-2 text-2xl font-bold tracking-[-0.04em] sm:text-3xl">{title}</h2>
+      <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted sm:text-base">{intro}</p>
       <div className="mt-6 space-y-5">{children}</div>
     </section>
-  );
-}
-
-function TableRow({ children }: { children: ReactNode }) {
-  return <tr className="border-b border-line last:border-b-0">{children}</tr>;
-}
-
-function Cell({ children, mono = false }: { children: ReactNode; mono?: boolean }) {
-  return (
-    <td className={`px-3 py-2.5 ${mono ? 'font-mono text-xs' : 'text-sm'} leading-relaxed`}>
-      {children}
-    </td>
   );
 }
 
@@ -407,13 +370,11 @@ export function DocsPage() {
               Dokumentasi API
             </p>
             <h1 className="mt-4 max-w-3xl text-4xl leading-[0.95] font-extrabold tracking-[-0.055em] text-ink sm:text-6xl">
-              Satu endpoint.
-              <br />
-              Semua model.
+              Panduan integrasi.
             </h1>
             <p className="mt-6 max-w-2xl text-base leading-relaxed text-muted sm:text-lg">
-              Rexu API memakai format OpenAI. Ganti base URL, pakai API key Rexu, dan kode yang
-              sudah ada tetap berjalan.
+              Rexu memakai format OpenAI. Ganti base URL dan API key, lalu panggil endpoint seperti
+              biasa.
             </p>
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
@@ -475,8 +436,8 @@ export function DocsPage() {
               <DocSection
                 id="mulai"
                 number="01"
-                title="Mulai cepat"
-                intro="Empat langkah dari akun kosong sampai request pertama."
+                title="Quick Start"
+                intro="Empat langkah untuk mengirim request pertama."
               >
                 <ol className="grid gap-px border border-line bg-line sm:grid-cols-2">
                   {steps.map((step, index) => (
@@ -490,24 +451,6 @@ export function DocsPage() {
                   ))}
                 </ol>
 
-                <p className="text-sm leading-relaxed text-muted">
-                  Belum punya akun?{' '}
-                  <Link
-                    to="/login"
-                    className="text-ink underline decoration-line underline-offset-4 hover:decoration-ink"
-                  >
-                    Daftar atau masuk
-                  </Link>
-                  . Setelah itu buka{' '}
-                  <Link
-                    to="/app/keys"
-                    className="text-ink underline decoration-line underline-offset-4 hover:decoration-ink"
-                  >
-                    menu API key
-                  </Link>
-                  .
-                </p>
-
                 <CodeBlock label="cURL" code={quickStartCurl} />
               </DocSection>
 
@@ -515,31 +458,24 @@ export function DocsPage() {
                 id="autentikasi"
                 number="02"
                 title="Autentikasi"
-                intro="Setiap request ke endpoint /v1 memakai API key di header Authorization."
+                intro="Semua request ke /v1 membutuhkan API key."
               >
                 <CodeBlock label="Header" code={authHeader} />
 
-                <p className="text-sm leading-relaxed text-muted">
-                  API key dibuat dari dashboard, berprefix <Mono>sk-rxu-</Mono>, dan hanya
-                  ditampilkan sekali saat dibuat. Key yang dicabut atau akun yang tidak aktif
-                  langsung ditolak dengan status <Mono>401</Mono>.
-                </p>
-
-                <Note>
-                  Cookie sesi dashboard tidak dipakai oleh API. Untuk integrasi server-ke-server,
-                  cukup kirim Bearer key dari environment variable.
-                </Note>
-
-                <Note tone="oxide">
-                  Jangan menaruh API key di kode frontend, repo publik, atau aplikasi mobile yang
-                  bisa dibongkar. Panggilan API sebaiknya lewat backend kamu.
-                </Note>
+                <ul className="space-y-3 text-sm leading-relaxed text-muted">
+                  <li className="border-l-2 border-line pl-3">
+                    Buat API key di dashboard, lalu simpan karena raw key hanya tampil sekali.
+                  </li>
+                  <li className="border-l-2 border-line pl-3">
+                    Jangan menaruh API key di frontend atau repo publik.
+                  </li>
+                </ul>
               </DocSection>
 
               <DocSection
                 id="chat"
                 number="03"
-                title="Chat completions"
+                title="Chat Completions"
                 intro="Endpoint utama untuk membuat completion dari daftar pesan."
               >
                 <Endpoint method="POST" path="/v1/chat/completions" />
@@ -549,308 +485,152 @@ export function DocsPage() {
                     <Cell mono>model</Cell>
                     <Cell mono>string</Cell>
                     <Cell>Ya</Cell>
-                    <Cell>
-                      ID model dari <Mono>GET /v1/models</Mono>.
-                    </Cell>
+                    <Cell>ID model dari GET /v1/models.</Cell>
                   </TableRow>
                   <TableRow>
                     <Cell mono>messages</Cell>
                     <Cell mono>array</Cell>
                     <Cell>Ya</Cell>
-                    <Cell>
-                      1–256 pesan. Role yang didukung: <Mono>system</Mono>, <Mono>user</Mono>,{' '}
-                      <Mono>assistant</Mono>, <Mono>tool</Mono>.
-                    </Cell>
+                    <Cell>Array pesan (role: user/assistant/system).</Cell>
                   </TableRow>
                   <TableRow>
                     <Cell mono>stream</Cell>
                     <Cell mono>boolean</Cell>
                     <Cell>Tidak</Cell>
                     <Cell>
-                      Default <Mono>false</Mono>. Lihat bagian Streaming.
+                      Default <Mono>false</Mono>.
                     </Cell>
                   </TableRow>
                   <TableRow>
                     <Cell mono>max_tokens</Cell>
                     <Cell mono>integer</Cell>
                     <Cell>Tidak</Cell>
-                    <Cell>Batas panjang output. Bisa juga memakai max_completion_tokens.</Cell>
+                    <Cell>Batas panjang output.</Cell>
                   </TableRow>
                   <TableRow>
                     <Cell mono>temperature</Cell>
                     <Cell mono>number</Cell>
                     <Cell>Tidak</Cell>
-                    <Cell>Kreativitas jawaban, diteruskan ke model.</Cell>
-                  </TableRow>
-                  <TableRow>
-                    <Cell mono>field OpenAI lain</Cell>
-                    <Cell mono>—</Cell>
-                    <Cell>Tidak</Cell>
-                    <Cell>Diteruskan ke upstream selama didukung model.</Cell>
+                    <Cell>Kreativitas jawaban (0–2).</Cell>
                   </TableRow>
                 </DataTable>
 
-                <p className="text-sm leading-relaxed text-muted">
-                  <Mono>content</Mono> bisa berupa teks sampai 200.000 karakter, atau array part
-                  untuk model vision. Contoh part gambar mengikuti format OpenAI.
-                </p>
-
-                <h3 className="text-sm font-semibold">Contoh request</h3>
+                <h3 className="text-sm font-semibold">Python</h3>
                 <CodeBlock label="Python" code={chatPython} />
 
-                <h3 className="text-sm font-semibold">Contoh respons</h3>
+                <h3 className="text-sm font-semibold">Node.js</h3>
+                <CodeBlock label="Node.js" code={chatNode} />
+
+                <h3 className="text-sm font-semibold">Response</h3>
                 <CodeBlock label="JSON" code={chatResponse} />
-
-                <h3 className="text-sm font-semibold">Header respons</h3>
-                <ul className="space-y-2 text-sm leading-relaxed text-muted">
-                  <li>
-                    <Mono>x-quota-remaining</Mono> — saldo RC yang tersedia saat request diterima.
-                  </li>
-                  <li>
-                    <Mono>x-rexu-usage-log-id</Mono> — ID log pemakaian untuk request ini.
-                  </li>
-                  <li>
-                    <Mono>x-upstream-request-id</Mono> — ID request dari penyedia model, jika ada.
-                  </li>
-                </ul>
-
-                <Note>
-                  Untuk retry yang aman, kirim header <Mono>Idempotency-Key</Mono>. Jika key yang
-                  sama sudah dipakai, request ditolak dengan status <Mono>409</Mono> dan kode{' '}
-                  <Mono>duplicate_request</Mono>.
-                </Note>
               </DocSection>
 
               <DocSection
                 id="streaming"
                 number="04"
                 title="Streaming"
-                intro="Aktifkan stream untuk menerima potongan jawaban saat dibuat, bukan menunggu respons selesai."
+                intro="Aktifkan dengan stream: true. Format SSE dan kompatibel dengan OpenAI SDK."
               >
-                <p className="text-sm leading-relaxed text-muted">
-                  Set <Mono>stream: true</Mono> pada body request. Respons memakai format
-                  Server-Sent Events: setiap baris <Mono>data:</Mono> berisi satu chunk JSON, lalu
-                  diakhiri <Mono>data: [DONE]</Mono>.
-                </p>
-
                 <CodeBlock label="Python" code={streamPython} />
-
-                <h3 className="text-sm font-semibold">Bentuk stream mentah</h3>
-                <CodeBlock label="SSE" code={streamSse} />
-
-                <p className="text-sm leading-relaxed text-muted">
-                  Header <Mono>x-rexu-request-id</Mono>, <Mono>x-rexu-usage-log-id</Mono>, dan{' '}
-                  <Mono>x-quota-remaining</Mono> dikirim sebelum chunk pertama. Sebagian model juga
-                  mengirim <Mono>usage</Mono> di chunk terakhir; nilai itu yang dipakai untuk
-                  billing.
-                </p>
-
-                <Note tone="oxide">
-                  Jika koneksi terputus di tengah stream, request tetap tercatat di usage log.
-                  Sebagian stream yang belum mengirim usage akan ditandai untuk rekonsiliasi.
-                </Note>
               </DocSection>
 
               <DocSection
                 id="models"
                 number="05"
-                title="Daftar model"
-                intro="Ambil daftar model yang aktif beserta kemampuan dan pengali harganya."
+                title="Daftar Model"
+                intro="Kembalikan daftar model yang tersedia."
               >
                 <Endpoint method="GET" path="/v1/models" />
 
                 <CodeBlock label="JSON" code={modelsResponse} />
 
-                <DataTable head={['Field', 'Arti']}>
-                  <TableRow>
-                    <Cell mono>id</Cell>
-                    <Cell>ID yang dipakai di field model saat memanggil chat completions.</Cell>
-                  </TableRow>
-                  <TableRow>
-                    <Cell mono>owned_by</Cell>
-                    <Cell>Penyedia upstream model.</Cell>
-                  </TableRow>
-                  <TableRow>
-                    <Cell mono>vision</Cell>
-                    <Cell>Model menerima input gambar.</Cell>
-                  </TableRow>
-                  <TableRow>
-                    <Cell mono>streaming</Cell>
-                    <Cell>Model mendukung respons stream.</Cell>
-                  </TableRow>
-                  <TableRow>
-                    <Cell mono>rexu.multiplierBp</Cell>
-                    <Cell>
-                      Pengali harga dalam basis poin. <Mono>10000</Mono> berarti 1×.
-                    </Cell>
-                  </TableRow>
-                  <TableRow>
-                    <Cell mono>rexu.multiplier</Cell>
-                    <Cell>Nilai desimal dari multiplierBp, misalnya 1.2 untuk 12000 bp.</Cell>
-                  </TableRow>
-                </DataTable>
-
-                <Note>
-                  Nilai pada contoh di atas hanya ilustrasi. Selalu baca multiplier dari respons API
-                  karena harga tiap model bisa berubah.
-                </Note>
-              </DocSection>
-
-              <DocSection
-                id="usage"
-                number="06"
-                title="Pemakaian"
-                intro="Lihat total request, token mentah, dan RC yang terpotong untuk satu API key."
-              >
-                <Endpoint method="GET" path="/v1/usage?from=2026-11-01&to=2026-11-30" />
-
-                <DataTable head={['Query', 'Format', 'Catatan']}>
-                  <TableRow>
-                    <Cell mono>from</Cell>
-                    <Cell mono>ISO 8601</Cell>
-                    <Cell>Opsional. Batas awal, inklusif.</Cell>
-                  </TableRow>
-                  <TableRow>
-                    <Cell mono>to</Cell>
-                    <Cell mono>ISO 8601</Cell>
-                    <Cell>Opsional. Batas akhir, inklusif.</Cell>
-                  </TableRow>
-                </DataTable>
-
                 <p className="text-sm leading-relaxed text-muted">
-                  Tanpa query, hasil menghitung seluruh pemakaian key tersebut. Hanya trafik yang
-                  memakai API key ini yang dihitung.
-                </p>
-
-                <CodeBlock label="JSON" code={usageResponse} />
-
-                <p className="text-sm leading-relaxed text-muted">
-                  <Mono>raw_tokens</Mono> adalah token mentah dari upstream, sedangkan{' '}
-                  <Mono>rc_deducted</Mono> adalah RC yang benar-benar dipotong. Perhatikan bahwa
-                  totals memakai camelCase (<Mono>rawTokens</Mono>, <Mono>rcDeducted</Mono>),
-                  sementara <Mono>by_model</Mono> memakai snake_case.
-                </p>
-              </DocSection>
-
-              <DocSection
-                id="rc"
-                number="07"
-                title="RC & billing"
-                intro="RC adalah unit saldo Rexu. Setiap request AI memotong RC sesuai model dan token yang dipakai."
-              >
-                <ul className="space-y-3 text-sm leading-relaxed text-muted">
-                  <li className="border-l-2 border-line pl-3">
-                    Besaran potongan mengikuti token mentah dan multiplier model. Nilai{' '}
-                    <Mono>rexu.multiplierBp</Mono> di <Mono>GET /v1/models</Mono> menunjukkan
-                    pengali harga relatif.
-                  </li>
-                  <li className="border-l-2 border-line pl-3">
-                    Nilai akhir per request selalu bisa dicek di <Mono>GET /v1/usage</Mono> lewat
-                    field <Mono>rc_deducted</Mono>.
-                  </li>
-                  <li className="border-l-2 border-line pl-3">
-                    <Mono>x-quota-remaining</Mono> menunjukkan saldo tersedia saat request diterima,
-                    bukan saldo setelah request selesai.
-                  </li>
-                  <li className="border-l-2 border-line pl-3">
-                    Isi saldo lewat QRIS di{' '}
-                    <Link
-                      to="/app/topup"
-                      className="text-ink underline decoration-line underline-offset-4 hover:decoration-ink"
-                    >
-                      halaman Top up
-                    </Link>
-                    . Minimum Rp 2.000. RC tidak kedaluwarsa selama akun aktif.
-                  </li>
-                </ul>
-
-                <div className="flex flex-wrap gap-3">
+                  Gunakan field <Mono>id</Mono> sebagai nilai <Mono>model</Mono> di chat
+                  completions. Lihat{' '}
                   <Link
-                    to="/app/topup"
-                    className="inline-flex min-h-11 items-center justify-center border border-line px-4 text-sm font-semibold text-ink transition-colors duration-150 hover:border-ink"
+                    to="/app/models"
+                    className="text-ink underline decoration-line underline-offset-4 hover:decoration-ink"
                   >
-                    Isi saldo RC
-                  </Link>
-                  <Link
-                    to="/app/usage"
-                    className="inline-flex min-h-11 items-center justify-center border border-line px-4 text-sm font-semibold text-ink transition-colors duration-150 hover:border-ink"
-                  >
-                    Lihat usage log
-                  </Link>
-                </div>
+                    halaman Model
+                  </Link>{' '}
+                  di dashboard untuk info lengkap setiap model.
+                </p>
               </DocSection>
 
-              <DocSection
-                id="error"
-                number="08"
-                title="Rate limit & error"
-                intro="Semua error memakai bentuk JSON yang sama, lengkap dengan kode dan request ID."
-              >
-                <p className="text-sm leading-relaxed text-muted">
-                  Default rate limit adalah 60 request per menit untuk setiap API key. Saat limit
-                  tercapai, respons <Mono>429</Mono> menyertakan header <Mono>Retry-After</Mono>{' '}
-                  dalam detik.
-                </p>
-
-                <CodeBlock label="JSON" code={errorResponse} />
-
-                <DataTable head={['Status', 'Code', 'Arti']}>
+              <DocSection id="error" number="06" title="Error" intro="Kode error yang paling umum.">
+                <DataTable head={['Status', 'Keterangan']}>
                   <TableRow>
                     <Cell mono>400</Cell>
-                    <Cell mono>validation_failed</Cell>
-                    <Cell>Body request tidak sesuai skema.</Cell>
-                  </TableRow>
-                  <TableRow>
-                    <Cell mono>400</Cell>
-                    <Cell mono>model_unavailable</Cell>
-                    <Cell>Model tidak ada atau sedang tidak tersedia.</Cell>
-                  </TableRow>
-                  <TableRow>
-                    <Cell mono>400</Cell>
-                    <Cell mono>request_too_large</Cell>
-                    <Cell>Estimasi request melebihi batas reservasi RC.</Cell>
+                    <Cell>Model tidak tersedia atau request tidak valid.</Cell>
                   </TableRow>
                   <TableRow>
                     <Cell mono>401</Cell>
-                    <Cell mono>unauthorized</Cell>
-                    <Cell>API key hilang, salah, atau sudah dicabut.</Cell>
-                  </TableRow>
-                  <TableRow>
-                    <Cell mono>409</Cell>
-                    <Cell mono>duplicate_request</Cell>
-                    <Cell>Idempotency-Key yang sama sudah dipakai.</Cell>
-                  </TableRow>
-                  <TableRow>
-                    <Cell mono>413</Cell>
-                    <Cell mono>payload_too_large</Cell>
-                    <Cell>Body request terlalu besar.</Cell>
+                    <Cell>API key salah atau tidak aktif.</Cell>
                   </TableRow>
                   <TableRow>
                     <Cell mono>429</Cell>
-                    <Cell mono>rate_limited</Cell>
-                    <Cell>Batas request per menit tercapai. Cek Retry-After.</Cell>
+                    <Cell>Terlalu banyak request atau saldo RC habis.</Cell>
                   </TableRow>
                   <TableRow>
-                    <Cell mono>429</Cell>
-                    <Cell mono>insufficient_quota</Cell>
-                    <Cell>Saldo RC tidak cukup atau batas kredit API key tercapai.</Cell>
-                  </TableRow>
-                  <TableRow>
-                    <Cell mono>502–504</Cell>
-                    <Cell mono>model_unavailable / timeout</Cell>
-                    <Cell>Upstream gagal atau timeout. Coba lagi dengan backoff.</Cell>
-                  </TableRow>
-                  <TableRow>
-                    <Cell mono>500</Cell>
-                    <Cell mono>internal_error</Cell>
-                    <Cell>Kesalahan internal Rexu.</Cell>
+                    <Cell mono>5xx</Cell>
+                    <Cell>Masalah sementara di server, coba lagi.</Cell>
                   </TableRow>
                 </DataTable>
 
-                <Note>
-                  Sertakan <Mono>request_id</Mono> saat melapor. Untuk 429, tunggu sesuai{' '}
-                  <Mono>Retry-After</Mono>. Untuk 5xx, retry dengan exponential backoff.
-                </Note>
+                <CodeBlock label="JSON" code={errorResponse} />
+
+                <p className="text-sm leading-relaxed text-muted">
+                  Sertakan <Mono>request_id</Mono> saat menghubungi support.
+                </p>
+              </DocSection>
+
+              <DocSection
+                id="integrasi"
+                number="07"
+                title="Integrasi AI Tools"
+                intro="Rexu kompatibel dengan semua tool yang mendukung custom OpenAI endpoint."
+              >
+                <h3 className="text-sm font-semibold">OpenCode</h3>
+                <p className="text-sm leading-relaxed text-muted">
+                  Tambahkan provider berikut ke konfigurasi, lalu pilih modelnya.
+                </p>
+                <CodeBlock label="TOML" code={openCodeConfig} />
+
+                <h3 className="text-sm font-semibold">Cursor</h3>
+                <ul className="space-y-2 text-sm leading-relaxed text-muted">
+                  <li>Settings → Models → Add Model.</li>
+                  <li>
+                    Base URL: <Mono>https://rexu.ai.id/v1</Mono>
+                  </li>
+                  <li>
+                    API Key: <Mono>sk-rxu-...</Mono>
+                  </li>
+                  <li>
+                    Model: <Mono>deepseek-v4.1-flash</Mono> atau model lain.
+                  </li>
+                </ul>
+
+                <h3 className="text-sm font-semibold">Cline / Roo Code (VS Code)</h3>
+                <ul className="space-y-2 text-sm leading-relaxed text-muted">
+                  <li>Settings → API Provider → OpenAI Compatible.</li>
+                  <li>
+                    Base URL: <Mono>https://rexu.ai.id/v1</Mono>
+                  </li>
+                  <li>
+                    API Key: <Mono>sk-rxu-...</Mono>
+                  </li>
+                </ul>
+
+                <h3 className="text-sm font-semibold">Aider</h3>
+                <CodeBlock label="Shell" code={aiderCommand} />
+
+                <h3 className="text-sm font-semibold">LiteLLM / 9Router / proxy lain</h3>
+                <CodeBlock label="Config" code={litellmConfig} />
+
+                <p className="border-l-2 border-petrol pl-3 text-sm leading-relaxed text-muted">
+                  Semua tool yang mendukung OpenAI-compatible endpoint bisa langsung dipakai dengan
+                  mengganti base URL dan API key.
+                </p>
               </DocSection>
             </div>
           </div>
