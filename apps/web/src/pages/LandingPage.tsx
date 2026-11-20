@@ -78,6 +78,7 @@ function BarChart2({ className }: IconProps) {
 
 const navLinks = [
   { href: '#harga', label: 'Harga' },
+  { href: '/docs', label: 'Dokumentasi' },
   { href: '#faq', label: 'FAQ' },
 ];
 
@@ -132,7 +133,7 @@ function formatRate(plan: { priceIdr: number; rcAmount: number }): string {
   return rateFormatter.format(plan.rcAmount / plan.priceIdr);
 }
 
-const upcomingLinks = ['Dokumentasi', 'Status', 'Dukungan', 'Privasi', 'Ketentuan'];
+const upcomingLinks = ['Status', 'Dukungan', 'Privasi', 'Ketentuan'];
 
 const footerSections = [
   { label: 'Harga', href: '#harga' },
@@ -168,7 +169,7 @@ const faqs = [
   {
     question: 'Bagaimana cara mendaftar?',
     answer:
-      'Saat ini pendaftaran melalui undangan. Klik "Mulai pakai" untuk masuk ke halaman login.',
+      'Pendaftaran terbuka untuk umum. Buka halaman Masuk, pilih tab Daftar, lalu isi email dan password minimal 8 karakter. Rexu mengirim kode OTP 6 digit ke email kamu; masukkan kode itu untuk mengaktifkan akun. Setelah masuk, buat API key di menu API key lalu isi saldo RC lewat QRIS.',
   },
   {
     question: 'Berapa RC yang dipotong per request?',
@@ -207,13 +208,12 @@ export function LandingPage() {
               Mulai pakai
               <ArrowRight className="size-4" />
             </Link>
-            <button
-              type="button"
-              onClick={() => scrollToSection('dokumentasi')}
+            <Link
+              to="/docs"
               className="inline-flex min-h-12 items-center justify-center border border-line px-5 text-sm font-semibold text-ink transition-colors duration-150 hover:border-ink"
             >
               Lihat dokumentasi
-            </button>
+            </Link>
           </div>
 
           <div id="dokumentasi" className="mt-12 max-w-2xl scroll-mt-20 sm:mt-14">
@@ -452,6 +452,14 @@ export function LandingPage() {
               <div>
                 <p className="mb-3 font-mono text-xs uppercase tracking-wider text-muted">Tautan</p>
                 <ul className="space-y-2">
+                  <li>
+                    <Link
+                      to="/docs"
+                      className="text-sm text-muted transition-colors duration-150 hover:text-ink"
+                    >
+                      Dokumentasi
+                    </Link>
+                  </li>
                   {upcomingLinks.map((label) => (
                     <li key={label}>
                       <span

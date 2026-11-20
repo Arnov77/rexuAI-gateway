@@ -7,6 +7,7 @@ import { AdminPackagesPage } from '../pages/admin/AdminPackagesPage';
 import { AdminReconcilePage } from '../pages/admin/AdminReconcilePage';
 import { AdminUsersPage } from '../pages/admin/AdminUsersPage';
 import { DashboardPage } from '../pages/DashboardPage';
+import { DocsPage } from '../pages/DocsPage';
 import { KeysPage } from '../pages/KeysPage';
 import { LandingPage } from '../pages/LandingPage';
 import { LoginPage } from '../pages/LoginPage';
@@ -50,6 +51,7 @@ export function AppRouter() {
   return (
     <Routes>
       <Route path="/" element={<LandingPage />} />
+      <Route path="/docs" element={<DocsPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<Navigate to="/login" replace />} />
       <Route path="/app" element={<AppShell />}>

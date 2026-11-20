@@ -163,16 +163,25 @@ export function PublicNav({ links = [], showLogin = false }: PublicNavProps) {
 
             {hasLinks ? (
               <nav className="hidden items-center gap-8 lg:flex" aria-label="Navigasi utama">
-                {links.map((link) => (
-                  <a
-                    key={link.href}
-                    href={link.href}
-                    onClick={(event) => handleAnchorClick(event, link.href)}
-                    className="inline-flex min-h-11 items-center text-sm text-muted transition-colors duration-150 hover:text-ink"
-                  >
-                    {link.label}
-                  </a>
-                ))}
+                {links.map((link) => {
+                  const className =
+                    'inline-flex min-h-11 items-center text-sm text-muted transition-colors duration-150 hover:text-ink';
+
+                  return link.href.startsWith('#') ? (
+                    <a
+                      key={link.href}
+                      href={link.href}
+                      onClick={(event) => handleAnchorClick(event, link.href)}
+                      className={className}
+                    >
+                      {link.label}
+                    </a>
+                  ) : (
+                    <Link key={link.href} to={link.href} className={className}>
+                      {link.label}
+                    </Link>
+                  );
+                })}
               </nav>
             ) : null}
 
@@ -233,16 +242,29 @@ export function PublicNav({ links = [], showLogin = false }: PublicNavProps) {
                 className="mx-auto flex w-full max-w-6xl flex-col px-4 py-2 sm:px-6"
                 aria-label="Navigasi seluler"
               >
-                {links.map((link) => (
-                  <a
-                    key={link.href}
-                    href={link.href}
-                    onClick={(event) => handleAnchorClick(event, link.href)}
-                    className="flex min-h-11 items-center border-b border-line text-sm"
-                  >
-                    {link.label}
-                  </a>
-                ))}
+                {links.map((link) => {
+                  const className = 'flex min-h-11 items-center border-b border-line text-sm';
+
+                  return link.href.startsWith('#') ? (
+                    <a
+                      key={link.href}
+                      href={link.href}
+                      onClick={(event) => handleAnchorClick(event, link.href)}
+                      className={className}
+                    >
+                      {link.label}
+                    </a>
+                  ) : (
+                    <Link
+                      key={link.href}
+                      to={link.href}
+                      onClick={() => setMenuOpen(false)}
+                      className={className}
+                    >
+                      {link.label}
+                    </Link>
+                  );
+                })}
                 <button
                   type="button"
                   onClick={toggleTheme}
