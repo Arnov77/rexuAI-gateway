@@ -1,13 +1,36 @@
-import { useEffect, useRef, useState } from 'react';
+import { type KeyboardEvent, type PointerEvent, useEffect, useRef, useState } from 'react';
 
 // Kontak support yang tampil di floating button.
 const WA_NUMBER = '6285854751847';
 const TG_USERNAME = 'Opak7';
 const SUPPORT_EMAIL = 'support@rexu.ai.id';
 
+const POSITION_KEY = 'rexu-support-bottom';
+const DEFAULT_BOTTOM = 24;
+const MIN_BOTTOM = 16;
+const DRAG_THRESHOLD = 5;
+
 type IconProps = {
   className?: string;
 };
+
+type DragState = {
+  pointerId: number;
+  startY: number;
+  startBottom: number;
+  currentBottom: number;
+  moved: boolean;
+};
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(Math.max(value, min), max);
+}
+
+function getMaxBottom(root: HTMLElement | null): number {
+  const height = root?.offsetHeight ?? 48;
+  // Sisakan ruang untuk notch/safe-area di atas.
+  return Math.max(MIN_BOTTOM, window.innerHeight - height - 44);
+}
 
 function HelpIcon({ className = 'size-6' }: IconProps) {
   return (
@@ -99,17 +122,32 @@ const contacts = [
 
 export function SupportButton() {
   const [open, setOpen] = useState(false);
+  const [bottom, setBottom] = useState(DEFAULT_BOTTOM);
+  const [dragging, setDragging] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const dragRef = useRef<DragState | null>(null);
+  const suppressClickRef = useRef(false);
+
+  useEffect(() => {
+    const saved = Number(window.localStorage.getItem(POSITION_KEY));
+    const initial = Number.isFinite(saved) && saved > 0 ? saved : DEFAULT_BOTTOM;
+    setBottom(clamp(initial, MIN_BOTTOM, getMaxBottom(rootRef.current)));
+
+    const handleResize = () =>
+      setBottom((value) => clamp(value, MIN_BOTTOM, getMaxBottom(rootRef.current)));
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     if (!open) return;
 
-    function handlePointerDown(event: PointerEvent) {
+    function handlePointerDown(event: globalThis.PointerEvent) {
       if (!rootRef.current?.contains(event.target as Node)) setOpen(false);
     }
 
-    function handleKeyDown(event: KeyboardEvent) {
+    function handleKeyDown(event: globalThis.KeyboardEvent) {
       if (event.key !== 'Escape') return;
       setOpen(false);
       buttonRef.current?.focus();
@@ -123,11 +161,79 @@ export function SupportButton() {
     };
   }, [open]);
 
+  function handlePointerDown(event: PointerEvent<HTMLButtonElement>) {
+    if (event.pointerType === 'mouse' && event.button !== 0) return;
+    event.currentTarget.setPointerCapture(event.pointerId);
+    dragRef.current = {
+      pointerId: event.pointerId,
+      startY: event.clientY,
+      startBottom: bottom,
+      currentBottom: bottom,
+      moved: false,
+    };
+  }
+
+  function handlePointerMove(event: PointerEvent<HTMLButtonElement>) {
+    const drag = dragRef.current;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+
+    const delta = drag.startY - event.clientY;
+    if (!drag.moved && Math.abs(delta) < DRAG_THRESHOLD) return;
+
+    if (!drag.moved) {
+      drag.moved = true;
+      setDragging(true);
+      setOpen(false);
+    }
+
+    const next = clamp(drag.startBottom + delta, MIN_BOTTOM, getMaxBottom(rootRef.current));
+    drag.currentBottom = next;
+    setBottom(next);
+  }
+
+  function handlePointerUp(event: PointerEvent<HTMLButtonElement>) {
+    const drag = dragRef.current;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+
+    dragRef.current = null;
+    setDragging(false);
+
+    if (!drag.moved) return;
+
+    window.localStorage.setItem(POSITION_KEY, String(drag.currentBottom));
+    suppressClickRef.current = true;
+    window.setTimeout(() => {
+      suppressClickRef.current = false;
+    }, 0);
+  }
+
+  function handlePointerCancel() {
+    dragRef.current = null;
+    setDragging(false);
+  }
+
+  function handleClick() {
+    if (suppressClickRef.current) {
+      suppressClickRef.current = false;
+      return;
+    }
+    setOpen((current) => !current);
+  }
+
+  function handleKeyDown(event: KeyboardEvent<HTMLButtonElement>) {
+    if (event.key !== 'ArrowUp' && event.key !== 'ArrowDown') return;
+    event.preventDefault();
+    const step = event.key === 'ArrowUp' ? 24 : -24;
+    const next = clamp(bottom + step, MIN_BOTTOM, getMaxBottom(rootRef.current));
+    setBottom(next);
+    window.localStorage.setItem(POSITION_KEY, String(next));
+  }
+
   return (
     <div
       ref={rootRef}
       className="fixed right-6 z-50 flex flex-col items-end gap-3"
-      style={{ bottom: 'calc(24px + env(safe-area-inset-bottom, 0px))' }}
+      style={{ bottom: `calc(${bottom}px + env(safe-area-inset-bottom, 0px))` }}
     >
       <div
         id="support-menu"
@@ -153,7 +259,11 @@ export function SupportButton() {
       </div>
 
       <div className="group relative">
-        <span className="pointer-events-none absolute top-1/2 right-full mr-3 hidden -translate-y-1/2 bg-ink px-2 py-1 text-xs whitespace-nowrap text-chalk opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-within:opacity-100 md:block">
+        <span
+          className={`pointer-events-none absolute top-1/2 right-full mr-3 hidden -translate-y-1/2 bg-ink px-2 py-1 text-xs whitespace-nowrap text-chalk opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-within:opacity-100 ${
+            dragging ? 'md:hidden' : 'md:block'
+          }`}
+        >
           Butuh bantuan?
         </span>
         <button
@@ -163,8 +273,15 @@ export function SupportButton() {
           aria-expanded={open}
           aria-controls="support-menu"
           aria-haspopup="true"
-          onClick={() => setOpen((current) => !current)}
-          className="grid size-12 place-items-center rounded-full bg-oxide text-chalk shadow-lg transition-colors duration-150 hover:bg-petrol focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-oxide"
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerUp}
+          onPointerCancel={handlePointerCancel}
+          onClick={handleClick}
+          onKeyDown={handleKeyDown}
+          className={`grid size-12 touch-none place-items-center rounded-full bg-oxide text-chalk shadow-lg transition-colors duration-150 select-none hover:bg-petrol focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-oxide ${
+            dragging ? 'cursor-grabbing' : 'cursor-grab'
+          }`}
         >
           <HelpIcon className="size-6" />
         </button>
