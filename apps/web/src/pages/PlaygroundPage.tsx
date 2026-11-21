@@ -828,7 +828,7 @@ export function PlaygroundPage() {
           )}
         </div>
 
-        <div className="border-t border-line bg-chalk p-3 pb-4 sm:p-4 dark:bg-chalk/5">
+        <div className="border-t border-line bg-chalk p-3 pb-20 sm:p-4 sm:pb-20 dark:bg-chalk/5">
           <div className="flex items-end gap-2">
             <label className="sr-only" htmlFor="playground-input">
               Pesan

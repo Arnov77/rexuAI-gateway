@@ -1,5 +1,6 @@
 import { useLayoutEffect } from 'react';
 import { Navigate, Outlet, Route, Routes } from 'react-router-dom';
+import { SupportButton } from '../components/SupportButton';
 import { useAuth } from '../features/auth/AuthProvider';
 import { AdminDashboardPage } from '../pages/admin/AdminDashboardPage';
 import { AdminModelsPage } from '../pages/admin/AdminModelsPage';
@@ -49,33 +50,36 @@ export function AppRouter() {
   }, []);
 
   return (
-    <Routes>
-      <Route path="/" element={<LandingPage />} />
-      <Route path="/docs" element={<DocsPage />} />
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/register" element={<Navigate to="/login" replace />} />
-      <Route path="/app" element={<AppShell />}>
-        <Route index element={<DashboardPage />} />
-        <Route path="playground" element={<PlaygroundPage />} />
-        <Route path="models" element={<ModelsPage />} />
-        <Route path="keys" element={<KeysPage />} />
-        <Route path="usage" element={<UsagePage />} />
-        <Route path="topup" element={<TopupPage />} />
-        <Route path="*" element={<Navigate to="/app" replace />} />
-      </Route>
-      <Route element={<RequireAdmin />}>
-        <Route path="/admin" element={<AppShell />}>
-          <Route index element={<AdminDashboardPage />} />
-          <Route path="models" element={<AdminModelsPage />} />
-          <Route path="packages" element={<AdminPackagesPage />} />
-          <Route path="users" element={<AdminUsersPage />} />
-          <Route path="reconcile" element={<AdminReconcilePage />} />
-          <Route path="*" element={<Navigate to="/admin" replace />} />
+    <>
+      <SupportButton />
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/docs" element={<DocsPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<Navigate to="/login" replace />} />
+        <Route path="/app" element={<AppShell />}>
+          <Route index element={<DashboardPage />} />
+          <Route path="playground" element={<PlaygroundPage />} />
+          <Route path="models" element={<ModelsPage />} />
+          <Route path="keys" element={<KeysPage />} />
+          <Route path="usage" element={<UsagePage />} />
+          <Route path="topup" element={<TopupPage />} />
+          <Route path="*" element={<Navigate to="/app" replace />} />
         </Route>
-      </Route>
-      <Route path="/models" element={<Navigate to="/app/models" replace />} />
-      <Route path="/keys" element={<Navigate to="/app/keys" replace />} />
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+        <Route element={<RequireAdmin />}>
+          <Route path="/admin" element={<AppShell />}>
+            <Route index element={<AdminDashboardPage />} />
+            <Route path="models" element={<AdminModelsPage />} />
+            <Route path="packages" element={<AdminPackagesPage />} />
+            <Route path="users" element={<AdminUsersPage />} />
+            <Route path="reconcile" element={<AdminReconcilePage />} />
+            <Route path="*" element={<Navigate to="/admin" replace />} />
+          </Route>
+        </Route>
+        <Route path="/models" element={<Navigate to="/app/models" replace />} />
+        <Route path="/keys" element={<Navigate to="/app/keys" replace />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </>
   );
 }
