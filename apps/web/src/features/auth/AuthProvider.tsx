@@ -43,8 +43,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const refresh = useCallback(async () => {
     try {
-      const data = await api<{ user: AuthUser; wallet: Wallet }>('/api/auth/me');
-      setState({ user: data.user, wallet: data.wallet, loading: false });
+      const data = await api<{ user: AuthUser | null; wallet: Wallet | null }>('/api/auth/me');
+      setState(
+        data.user
+          ? { user: data.user, wallet: data.wallet, loading: false }
+          : { user: null, wallet: null, loading: false },
+      );
     } catch {
       setState({ user: null, wallet: null, loading: false });
     }

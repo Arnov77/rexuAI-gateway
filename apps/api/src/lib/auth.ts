@@ -78,9 +78,10 @@ export async function destroySession(request: FastifyRequest): Promise<void> {
     .where(eq(sessions.tokenHash, hashSessionToken(token)));
 }
 
-export async function requireUser(request: FastifyRequest, _reply: FastifyReply): Promise<void> {
+/** Cari user dari cookie sesi tanpa melempar error saat belum login. */
+export async function resolveUser(request: FastifyRequest): Promise<AuthUser | null> {
   const token = request.cookies[env.cookieName];
-  if (!token) throw unauthorized();
+  if (!token) return null;
 
   const rows = await getDb()
     .select({
@@ -102,14 +103,19 @@ export async function requireUser(request: FastifyRequest, _reply: FastifyReply)
     .limit(1);
 
   const row = rows[0];
-  if (row?.status !== 'active') throw unauthorized();
+  if (row?.status !== 'active') return null;
 
-  const user: AuthUser = {
+  return {
     id: row.userId,
     email: row.email,
     name: row.name,
     role: row.role,
   };
+}
+
+export async function requireUser(request: FastifyRequest, _reply: FastifyReply): Promise<void> {
+  const user = await resolveUser(request);
+  if (!user) throw unauthorized();
   request.authUser = user;
 }
 

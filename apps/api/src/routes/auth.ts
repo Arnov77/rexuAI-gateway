@@ -8,7 +8,7 @@ import {
   clearSessionCookie,
   createSession,
   destroySession,
-  requireUser,
+  resolveUser,
   setSessionCookie,
 } from '../lib/auth.js';
 import { AppError, conflict, forbidden, unauthorized } from '../lib/errors.js';
@@ -123,9 +123,9 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
     return { ok: true };
   });
 
-  app.get('/me', { preHandler: requireUser }, async (request) => {
-    const user = request.authUser;
-    if (!user) throw unauthorized();
+  app.get('/me', async (request) => {
+    const user = await resolveUser(request);
+    if (!user) return { user: null, wallet: null };
     return {
       user,
       wallet: await walletFor(user.id),

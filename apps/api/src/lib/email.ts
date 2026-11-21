@@ -1,7 +1,7 @@
 import { env } from '../config/env.js';
 
 type SkymailResponse = {
-  code?: number;
+  code?: number | string;
   message?: string;
 };
 
@@ -53,7 +53,7 @@ export async function sendEmail(params: {
     );
   }
 
-  if (data.code !== 200) {
+  if (Number(data.code) !== 200) {
     throw new Error(`Email gagal dikirim: ${data.message ?? `kode ${String(data.code)}`}`);
   }
 }
